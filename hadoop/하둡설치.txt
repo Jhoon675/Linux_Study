@@ -1,0 +1,140 @@
+JDK(version을 보수적으로 가져가라) 버전8 설치
+java-1.8.0-openjdk-devel.x86_64
+
+Hadoop 2
+Protobuf : 안정성을 위해
+
+hadoop user 생성
+
+hadoop 설치 및 세팅
+
+webinterface (가급적 사용안하는게 좋다.)
+
+yum list java*jdk-devel 로 다운로드 할 수 있는 버전확인
+yum install java-1.8.0-openjdk-devel.x86_64
+
+vi /etc/profile
+맨 마지막에 가서 
+export JAVA_HOME=/usr/lib/jvm/jdk
+path에 등록
+export PATH=$JAVA_HOME/bin:$PATH 뒤에 path를 꼭붙여 주어야 원래 있던 path도 그대로 적용된다
+
+protobuf 설치
+yum install protobuf protobuf-devel
+버전 확인
+protoc --version
+-> libprotoc 2.5.0
+
+그룹 생성
+groupadd hadoop
+계정 생성 기본그룹 하둡 추가그룹 휠
+useradd -g hadoop -G wheel hadoop
+암호 설정
+passwd hadoop 
+
+하둡 다운로드 2.9.2 binary
+wget url 로 다운로드
+압축 해제
+
+이 설정은 하둡 사용자로 로그인 했을때 적용 시키기 위해
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+HADOOP_HOME안의 etc 파일들이 설정 파일들
+
+vi $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+export JAVA_HOME 을 주석 처리하고
+export JAVA_HOME=/usr/lib/jvm/jdk 를 설정해준다.
+설치 완료 후 
+hadoop version 으로 버전을 확인해라 2.9.2면 완료
+
+cd $HADOOP_HOME/etc/hadoop
+vi core-site.xml
+
+<configuration>
+ <!-- HDFS의 접속 정보 (namenode 정보) -->
+ <property>
+  <name>fs.defaultFS</name>
+  <!-- 완전 군상 모드에서는 직접 네임노드의 서버 아이피를 지정해 주는게 좋다-->
+  <value>hdfs://localhost:9000</value>
+ </property>
+ <!-- 하둡이 사용하는 임시 파일 저장 디렉터리(없어도 상관없지만 세팅 권장) -->
+ <property>
+  <name>hadoop.tmp.dir</name>
+  <value>/usr/local/hadoop/temp</value>
+ </property>
+</configuration>
+
+
+vi hdfs-site.xml
+<configuration>
+ <!-- 복제본 개수 : 가상 분산 노드에서는 1로 -->
+ <property>
+  <name>dfs.replication</name>
+  <value>1</value>
+ </property>
+ <!-- 네임노드 메타데이터 저장 위치 -->
+ <property>
+  <name>dfs.namenode.name.dir</name>
+  <value>/usr/local/hadoop/data/dfs/namenode</value>
+ </property>
+ <!-- 데이터 노드의 실제 저장 위치 -->
+ <property>
+  <name>dfs.datanode.data.dir</name>
+  <value>/usr/local/hadoop/data/dfs/datanode</value>
+ </property>
+</configuration>
+
+hadoop 폴더
+mapreduce 설정
+cp mapred-site.xml.template mapred-site.xml
+<configuration>
+ <!-- 맵 리듀스를 실행시킬 리소스 매니저 등록 -->
+ <property>
+  <name>mapreduce.framework.name</name>
+  <value>yarn</value>
+ </porperty>
+</configuration>   
+
+
+
+vi yarn-site.xml
+<configuration>
+<!-- Site specific YARN configuration properties -->
+ <property>
+  <name>yarn.nodemanager.aux-services</name>
+  <value>mapreduce_shuffle</value>
+ </property>
+ <property>
+  <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+  <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+ </property>
+</configuration>
+
+
+ssh-keygen -t rsa
+witch to save the key : Enter
+Enter
+Enter
+
+sshkey 는 ~/.ssh에 들어있다.
+id_rsa: 개인키
+id_rsa.pub: 공개키
+
+공개키를 서버로 전달 후 등록해 주어야 한다.
+
+.ssh 에서 진행
+cat id_rsa.pub >> authorized_keys
+
+cd로 홈 디렉터리로
+
+
+
+
+
+
+
+
+
+
+
